@@ -120,8 +120,16 @@ const Cart = (): JSX.Element => {
               </tr>
             )
           }) : <tr><td>Carrinho vazio</td></tr>}
+
+          
         </tbody>
       </ProductTable>
+
+      <button
+        type="button"
+        data-testid="remove-product"
+        onClick={() => handleRemoveProduct(16)}
+      >asdasd</button>
 
       <footer>
         <button type="button">Finalizar pedido</button>

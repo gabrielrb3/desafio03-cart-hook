@@ -1,6 +1,5 @@
 import { createContext, ReactNode, useContext, useState } from 'react';
 import { toast } from 'react-toastify';
-import { resolveTripleslashReference } from 'typescript';
 import { api } from '../services/api';
 import { Product, Stock } from '../types';
 
@@ -60,20 +59,18 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       }
 
       if(currentProduct) {
-
         currentProduct.amount = inCartAmount
-        setCart(previousCart)
-        localStorage.setItem('@RocketShoes:cart', JSON.stringify(previousCart))
-
       } else {  
         const newProduct = { 
           ...productDetails, 
           amount: inCartAmount,
         }
         previousCart.push(newProduct)
-        setCart(previousCart)
-        localStorage.setItem('@RocketShoes:cart', JSON.stringify(previousCart))
       }
+
+      setCart(previousCart)
+      localStorage.setItem('@RocketShoes:cart', JSON.stringify(previousCart))
+
     } catch {
       toast.error('Erro na adição do produto');
     }
@@ -81,11 +78,16 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
   const removeProduct = (productId: number) => {
     try {
-      const filteredCart = cart.filter(product => product.id !== productId);
+      const previousCart = [...cart]
+      const productIndex = previousCart.findIndex(product => product.id === productId)
 
-      setCart(filteredCart);
-      localStorage.setItem('@RocketShoes:cart', JSON.stringify(filteredCart));
-
+      if (productIndex >= 0) {
+        previousCart.splice(productIndex, 1)
+        setCart(previousCart)
+        localStorage.setItem('@RocketShoes:cart', JSON.stringify(previousCart))
+      } else {
+        throw Error()
+      }
     } catch {
       toast.error('Erro na remoção do produto');
     }
@@ -96,6 +98,10 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     amount,
   }: UpdateProductAmount) => {
     try {
+      if(amount <= 0) {
+        return
+      }
+
       const previousCart = [...cart]
       const currentProduct = previousCart.find(product => product.id === productId);
 
@@ -106,12 +112,14 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
         toast.error('Quantidade solicitada fora de estoque');
         return
       }
-      
-      if(currentProduct && currentProduct.amount > 0) {
+
+      if(currentProduct) {
         currentProduct.amount = amount
         setCart(previousCart)
         localStorage.setItem('@RocketShoes:cart', JSON.stringify(previousCart))
-      } 
+      } else {
+        throw Error()
+      }
       
     } catch {
       toast.error('Erro na alteração de quantidade do produto');
